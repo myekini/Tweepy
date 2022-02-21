@@ -6,18 +6,76 @@ consumer_secret = 'eql1G0u54iCktpZhNNT1ZC9NE7wCjByqOQhhOqENkG56LB5oAL'
 access_token = '349508797-sdVG2k5MpHJUy2OtJcxJiChsluvt3LtFhxaRgRpM'
 access_token_secret = 'Yh9K3nPyipPqfdufE59EUCONWOJ4W9DqQsQi8tuJiEzh7'
 
-auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
-auth.set_access_token(access_token, access_token_secret)
+from requests_oauthlib import OAuth1Session
+import os
+import json
 
-api = tweepy.API(auth)
+# In your terminal please set your environment variables by running the following lines of code.
+# export 'CONSUMER_KEY'='<your_consumer_key>'
+# export 'CONSUMER_SECRET'='<your_consumer_secret>'
 
-public_tweets = api.home_timeline()
-for tweet in public_tweets:
-    print(tweet.text)
+consumer_key = os.environ.get("CONSUMER_KEY")
+consumer_secret = os.environ.get("CONSUMER_SECRET")
 
-# Get the User object for twitter...
-user = api.get_user(screen_name='twitter')
-print(user.screen_name)
-print(user.followers_count)
-for friend in user.friends():
-   print(friend.screen_name)
+# User fields are adjustable, options include:
+# created_at, description, entities, id, location, name,
+# pinned_tweet_id, profile_image_url, protected,
+# public_metrics, url, username, verified, and withheld
+fields = "created_at,description"
+params = {"user.fields": fields}
+
+# Get request token
+request_token_url = "https://api.twitter.com/oauth/request_token"
+oauth = OAuth1Session(consumer_key, client_secret=consumer_secret)
+
+try:
+    fetch_response = oauth.fetch_request_token(request_token_url)
+except ValueError:
+    print(
+        "There may have been an issue with the consumer_key or consumer_secret you entered."
+    )
+
+resource_owner_key = fetch_response.get("oauth_token")
+resource_owner_secret = fetch_response.get("oauth_token_secret")
+print("Got OAuth token: %s" % resource_owner_key)
+
+# # Get authorization
+base_authorization_url = "https://api.twitter.com/oauth/authorize"
+authorization_url = oauth.authorization_url(base_authorization_url)
+print("Please go here and authorize: %s" % authorization_url)
+verifier = input("Paste the PIN here: ")
+
+# Get the access token
+access_token_url = "https://api.twitter.com/oauth/access_token"
+oauth = OAuth1Session(
+    consumer_key,
+    client_secret=consumer_secret,
+    resource_owner_key=resource_owner_key,
+    resource_owner_secret=resource_owner_secret,
+    verifier=verifier,
+)
+oauth_tokens = oauth.fetch_access_token(access_token_url)
+
+access_token = oauth_tokens["oauth_token"]
+access_token_secret = oauth_tokens["oauth_token_secret"]
+
+# Make the request
+oauth = OAuth1Session(
+    consumer_key,
+    client_secret=consumer_secret,
+    resource_owner_key=access_token,
+    resource_owner_secret=access_token_secret,
+)
+
+response = oauth.get("https://api.twitter.com/2/users/me", params=params)
+
+if response.status_code != 200:
+    raise Exception(
+        "Request returned an error: {} {}".format(response.status_code, response.text)
+    )
+
+print("Response code: {}".format(response.status_code))
+
+json_response = response.json()
+
+print(json.dumps(json_response, indent=4, sort_keys=True))
