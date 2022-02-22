@@ -9,22 +9,15 @@ import json
 consumer_key = os.environ.get("CONSUMER_KEY")
 consumer_secret = os.environ.get("CONSUMER_SECRET")
 
-# You can adjust ids to include a single Tweets
-# Or you can add to up to 100 comma-separated IDs
-params = {"ids": "1278747501642657792", "tweet.fields": "created_at,author_id"}
-# Tweet fields are adjustable.
-# Options include:
-# attachments, author_id, context_annotations,
-# conversation_id, created_at, entities, geo, id,
-# in_reply_to_user_id, lang, non_public_metrics, organic_metrics,
-# possibly_sensitive, promoted_metrics, public_metrics, referenced_tweets,
-# source, text, and withheld
-
-# Be sure to add replace the text of the with the text you wish to Tweet. You can also add parameters to post polls, quote Tweets, Tweet with reply settings, and Tweet to Super Followers in addition to other features.
-#payload = {"text": "Hello world! i'm that Stylish Dev "}
+# User fields are adjustable, options include:
+# created_at, description, entities, id, location, name,
+# pinned_tweet_id, profile_image_url, protected,
+# public_metrics, url, username, verified, and withheld
+fields = "created_at,description,profile_image_url, pinned_tweet_id"
+params = {"user.fields": fields}
 
 # Get request token
-request_token_url = "https://api.twitter.com/oauth/request_token?oauth_callback=oob&x_auth_access_type=write"
+request_token_url = "https://api.twitter.com/oauth/request_token"
 oauth = OAuth1Session(consumer_key, client_secret=consumer_secret)
 
 try:
@@ -38,7 +31,7 @@ resource_owner_key = fetch_response.get("oauth_token")
 resource_owner_secret = fetch_response.get("oauth_token_secret")
 print("Got OAuth token: %s" % resource_owner_key)
 
-# Get authorization
+# # Get authorization
 base_authorization_url = "https://api.twitter.com/oauth/authorize"
 authorization_url = oauth.authorization_url(base_authorization_url)
 print("Please go here and authorize: %s" % authorization_url)
@@ -66,13 +59,7 @@ oauth = OAuth1Session(
     resource_owner_secret=access_token_secret,
 )
 
-# Making the request
-response = oauth.get(
-    "https://api.twitter.com/2/tweets",
-    params=params
-)
-
-
+response = oauth.get("https://api.twitter.com/2/users/me/", params=params)
 
 if response.status_code != 200:
     raise Exception(
@@ -81,6 +68,10 @@ if response.status_code != 200:
 
 print("Response code: {}".format(response.status_code))
 
-# Saving the response as JSON
 json_response = response.json()
+
 print(json.dumps(json_response, indent=4, sort_keys=True))
+
+
+
+
