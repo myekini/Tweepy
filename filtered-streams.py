@@ -52,8 +52,8 @@ def delete_all_rules(rules):
 def set_rules(delete):
     # You can adjust the rules if needed
     sample_rules = [
-        {"value": "from:myekini -has:hashtags", "tag": "python"},
-        #{"value": "cat has:images -grumpy", "tag": "cat pictures"},
+        {"value": "(happy OR happiness)  -birthday -is:retweet", "tag": "happy"},
+        #{"value": "machine learning (has:mentions OR is:retweet)", "tag": "ML"},
     ]
     payload = {"add": sample_rules}
     response = requests.post(
