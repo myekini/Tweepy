@@ -52,9 +52,10 @@ def delete_all_rules(rules):
 def set_rules(delete):
     # You can adjust the rules if needed
     sample_rules = [
-        {"value": "(happy OR happiness)  -birthday -is:retweet", "tag": "happy"},
-        #{"value": "machine learning (has:mentions OR is:retweet)", "tag": "ML"},
+        {"value": " (Taxes OR taxpayers OR accountant OR filling ) -is:retweet", "tag": "tax"}
+
     ]
+    
     payload = {"add": sample_rules}
     response = requests.post(
         "https://api.twitter.com/2/tweets/search/stream/rules",
@@ -69,8 +70,10 @@ def set_rules(delete):
 
 
 def get_stream(set):
+    fields = "created_at"
+    params = {"tweet.fields": fields}
     response = requests.get(
-        "https://api.twitter.com/2/tweets/search/stream", auth=bearer_oauth, stream=True,
+        "https://api.twitter.com/2/tweets/search/stream", auth=bearer_oauth, stream=True, params=params
     )
     print(response.status_code)
     if response.status_code != 200:
